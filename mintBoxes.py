@@ -1,0 +1,90 @@
+import json
+from web3 import Web3
+from getpass import getpass
+
+def clear():
+    print("\033[H\033[J", end="")
+
+w3 = Web3(Web3.HTTPProvider("https://cloudflare-eth.com/v1/mainnet"))
+
+CONTRACT_ADDRESS = Web3.toChecksumAddress('0xb3cE7c6abF0801de81437cB94C1c8c84eA54346c')
+abi = '[{"inputs":[{"internalType":"address","name":"_nftAddress","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"CAIGVoucheredMinted","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Paused","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"previousAdminRole","type":"bytes32"},{"indexed":true,"internalType":"bytes32","name":"newAdminRole","type":"bytes32"}],"name":"RoleAdminChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleGranted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"address","name":"sender","type":"address"}],"name":"RoleRevoked","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"address","name":"account","type":"address"}],"name":"Unpaused","type":"event"},{"inputs":[],"name":"DEFAULT_ADMIN_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"DEPLOYER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"MINT_ADMIN_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"VOUCHER_SIGNER_ROLE","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"signature","type":"bytes"}],"internalType":"struct CAIGVoucheredMintingFactory.Voucher","name":"voucher","type":"tuple"}],"name":"digestVoucher","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"}],"name":"getRoleAdmin","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"grantRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"hasRole","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"nftAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"pause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"paused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_to","type":"address"},{"components":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"signature","type":"bytes"}],"internalType":"struct CAIGVoucheredMintingFactory.Voucher","name":"_voucher","type":"tuple"}],"name":"redeem","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"renounceRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"address","name":"account","type":"address"}],"name":"revokeRole","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"selfDestruct","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"unpause","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"signature","type":"bytes"}],"internalType":"struct CAIGVoucheredMintingFactory.Voucher","name":"voucher","type":"tuple"}],"name":"verify","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"}]'
+
+print("This program will help you mint all of your boxes. Please make sure to understand your options. If you have any questions please contact Pirre.")
+print("At any point you will be able to abort the exexution of this program by pressing CTRL+C, unless you have already started blockchain transactions.")
+print("Before any blockchain transactions will happen however, you will be prompted, if you really want to move continue.")
+input("Press Enter to start")
+clear()
+
+try:
+    data = json.loads(open("tickets.json", "r").read())
+    boxes = data['unredeemedNftVouchers']
+
+    print("What is the highest gas fee you want to pay?")
+    max_fees = float(input("Max gas fees: "))
+    clear()
+
+    box_number = len(boxes)
+
+    gas_fees = box_number * 75 * max_fees / 1000000 
+    print(f"You have {box_number} boxes to mint. At a gas fee of {max_fees}, you will require about {gas_fees} ETH to mint all of these boxes.")
+
+    print("Please enter the private key for the wallet you want to mint from:")
+    private_key = getpass("Private Key:")
+    clear()
+
+    address = w3.eth.account.from_key(private_key).address
+    balance = w3.eth.getBalance(address)
+    print(f"Your wallet {address} has a balance of: {balance}")
+
+    if balance < gas_fees:
+        raise Exception(f"Insufficient funds to mint all the boxes. Required {gas_fees} ETH, owned: {balance}")
+
+    options=[]
+    options.append("") #dummy to match index with mode chosen
+    options.append("1. Safe, but slowest: Mint one by one only when gas is lower than the threshold")
+    options.append("2. Pretty safe & quick: Mint all at once, but wait for gas to be lower than the threshold")
+    options.append("3. Risky, but quick: Mint all at once, but wait for gas to be lower than the threshold")
+
+    print("Please choose an option:")
+    print(options[1])
+    print(options[2])
+    print(options[3])
+    print("For options 1 & 2, you need to leave this window open, until the program finishes")
+    print("Depending on gas threshold the options 2 & 3 might leave your minting wallet with a lot of stuck transactions.")
+    mode = int(input("option: "))
+    clear()
+
+    if mode > 3 or mode < 1:
+        raise Exception("Invalid option")
+
+    print("Choose a wallet that will receive the boxes minted:")
+    recipient = Web3.toChecksumAddress(input("recipient address: "))
+    clear()
+
+    print("===== Summary =====")
+    print(f"Minting wallet: {address}")
+    print(f"Recipient wallet: {recipient}")
+    print(f"Available funds: {balance}")
+    print(f"Required funds estimate: {gas_fees}")
+    print(f"Number boxes to be minted: {box_number}")
+    print(f"Max gas fees: {box_number}")
+    print(f"Mode: {options[mode]}")
+    print("===================")
+    print()
+    print("Please make sure to check the summary and be sure that you want to proceed. As a reminder, you can ask Pirre, should you have any questions.")
+    print("The minting process will be started now. If you are certain you want to proceed, please type START (all upper case). In any other case this program will exit.")
+    if gas_fees < 15:
+        print()
+        print(f"WARNING: {max_fees} is a really low value for gas price. Please make sure, that your are certain you want to use this value")
+    confirmation=input("Type START to begin: ")
+    if not confirmation == "START":
+        raise Exception("Program aborted")
+    
+    print("The minting code has yet to be implemented.")
+
+
+except Exception as e:
+    print(f"{str(e)}")
+
+input("Press Enter to exit ...")
