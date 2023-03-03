@@ -1,3 +1,4 @@
+import time
 import json
 from web3 import Web3
 from getpass import getpass
@@ -68,7 +69,7 @@ try:
     print(f"Available funds: {balance}")
     print(f"Required funds estimate: {gas_fees}")
     print(f"Number boxes to be minted: {box_number}")
-    print(f"Max gas fees: {box_number}")
+    print(f"Max gas fees: {max_fees}")
     print(f"Mode: {options[mode]}")
     print("===================")
     print()
@@ -78,11 +79,50 @@ try:
         print()
         print(f"WARNING: {max_fees} is a really low value for gas price. Please make sure, that your are certain you want to use this value")
     confirmation=input("Type START to begin: ")
+    clear()
     if not confirmation == "START":
         raise Exception("Program aborted")
     
-    print("The minting code has yet to be implemented.")
+    contract = w3.eth.contract(
+        address=CONTRACT_ADDRESS,
+        abi=abi,
+    )
+    
+    nonce = w3.eth.get_transaction_count(address)
 
+    for box in boxes:
+        gas_fees=w3.eth.gas_price / 1000000000
+        while (mode < 3 and gas_fees > max_fees):
+            print(f"Waiting for gas to become lower than {max_fees}, currently: {gas_fees}")
+            clear()            
+            time.sleep(int(gas_fees - max_fees))
+            gas_fees=w3.eth.gas_price / 1000000000
+
+        token = int(box['tokenId'],16)
+        signature = box['signature']
+
+        fun = contract.functions.redeem(recipient, (token, signature))
+
+        tx_data = fun.build_transaction(
+            {
+                'from' : address,
+                'nonce' : nonce,
+            }
+        )
+
+        # ## ONLY FOR SETTING MANUAL GAS
+        tx_data['maxFeePerGas'] = tx_data['maxFeePerGas'] + int(max_fees * 1000000000)
+        tx_create = w3.eth.account.sign_transaction(tx_data, private_key)
+
+        tx_hash = w3.eth.send_raw_transaction(tx_create.rawTransaction)
+        print(f'Transaction created: https://etherscan.io/tx/{tx_hash.hex()}')
+
+        if mode == 1:
+            print("Waiting for transaction to be completed")
+            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+            print(f'Transaction successful')
+
+        nonce=nonce + 1
 
 except Exception as e:
     print(f"{str(e)}")
