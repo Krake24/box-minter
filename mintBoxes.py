@@ -25,11 +25,6 @@ try:
     max_fees = float(input("Max gas fees: "))
     clear()
 
-    box_number = len(boxes)
-
-    gas_fees = box_number * 75 * max_fees / 1000000 
-    print(f"You have {box_number} boxes to mint. At a gas fee of {max_fees}, you will require about {gas_fees} ETH to mint all of these boxes.")
-
     print("Please enter the private key for the wallet you want to mint from:")
     private_key = getpass("Private Key:")
     clear()
@@ -38,8 +33,21 @@ try:
     balance = w3.eth.getBalance(address) / 1000000000000000000
     print(f"Your wallet {address} has a balance of: {balance}")
 
+    box_number = len(boxes)
+    number_to_mint = box_number
+
+    costs_to_mint_one = 75 * max_fees / 1000000 
+    gas_fees = box_number * costs_to_mint_one
+    print(f"You have {box_number} boxes to mint. At a gas fee of {max_fees}, you will require about {gas_fees} ETH to mint all of these boxes.")
+    
     if balance < gas_fees:
-        raise Exception(f"Insufficient funds to mint all the boxes. Required {gas_fees} ETH, owned: {balance}")
+        number_to_mint = int(balance / costs_to_mint_one)
+        print(f"You have enough tickets to mint {box_number} of boxes, but your current balance only allows to mint {number_to_mint} at {max_fees} GWEI")
+
+    print(f"How many boxes do you want to mint? (Press enter to mint the maximum of {number_to_mint})")
+    number_to_mint=int(input(f"Boxes to mint (default: {number_to_mint})") or number_to_mint)
+    gas_fees = number_to_mint * costs_to_mint_one
+    clear()
 
     options=[]
     options.append("") #dummy to match index with mode chosen
@@ -68,14 +76,14 @@ try:
     print(f"Recipient wallet: {recipient}")
     print(f"Available funds: {balance}")
     print(f"Required funds estimate: {gas_fees}")
-    print(f"Number boxes to be minted: {box_number}")
+    print(f"Number of boxes to be minted: {number_to_mint}")
     print(f"Max gas fees: {max_fees}")
     print(f"Mode: {options[mode]}")
     print("===================")
     print()
     print("Please make sure to check the summary and be sure that you want to proceed. As a reminder, you can ask Pirre, should you have any questions.")
     print("The minting process will be started now. If you are certain you want to proceed, please type START (all upper case). In any other case this program will exit.")
-    if gas_fees < 15:
+    if max_fees < 15:
         print()
         print(f"WARNING: {max_fees} is a really low value for gas price. Please make sure, that your are certain you want to use this value")
     confirmation=input("Type START to begin: ")
@@ -89,9 +97,10 @@ try:
     )
     
     nonce = w3.eth.get_transaction_count(address)
-
-    for box in boxes:
-        gas_fees=w3.eth.gas_price / 1000000000
+    for index in range(0,number_to_mint):
+        box = boxes[index]
+        print(box)
+        gas_fees=w3.eth.gas_price / 1000000000 + 1 # adding one GWEI to current gas, since this number is base gas
         while (mode < 3 and gas_fees > max_fees):
             print(f"Waiting for gas to become lower than {max_fees}, currently: {gas_fees}")
             clear()            
