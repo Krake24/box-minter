@@ -15,11 +15,9 @@
 2. Press F12
 3. Search for a Tab named "Network" or similar 
 ![Network tab in brwoser console](https://i.imgur.com/sYmuLIR.png)
-4. In the filter field type "find"
-5. Press F5
-6.  Copy the text as shown in the image from the URL (similar to XXXXXXXXXXXXXXXXXXXXXXXXXXXX/YYYYYYYYYY)
+5. In the filter field type "find"
+6. Press F5
+7.  Copy the text as shown in the image from the URL (similar to XXXXXXXXXXXXXXXXXXXXXXXXXXXX/YYYYYYYYYY)
 ![URL](https://i.imgur.com/Nwg9GTr.png)
-7. Start downloadTicketData.py by double clicking on it
-8. When prompted enter the text copied in step 6
-
-
+8. Start downloadTicketData.py by double clicking on it
+9. When prompted enter the text copied in step 6
