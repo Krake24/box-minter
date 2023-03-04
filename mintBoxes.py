@@ -35,7 +35,7 @@ try:
     clear()
 
     address = w3.eth.account.from_key(private_key).address
-    balance = w3.eth.getBalance(address)
+    balance = w3.eth.getBalance(address) / 1000000000000000000
     print(f"Your wallet {address} has a balance of: {balance}")
 
     if balance < gas_fees:
@@ -111,7 +111,7 @@ try:
         )
 
         # ## ONLY FOR SETTING MANUAL GAS
-        tx_data['maxFeePerGas'] = tx_data['maxFeePerGas'] + int(max_fees * 1000000000)
+        tx_data['maxFeePerGas'] = int(max_fees * 1000000000)
         tx_create = w3.eth.account.sign_transaction(tx_data, private_key)
 
         tx_hash = w3.eth.send_raw_transaction(tx_create.rawTransaction)
