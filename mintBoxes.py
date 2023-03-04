@@ -1,5 +1,6 @@
 import time
 import json
+import os
 from web3 import Web3
 from getpass import getpass
 
@@ -18,7 +19,7 @@ input("Press Enter to start")
 clear()
 
 try:
-    data = json.loads(open("tickets.json", "r").read())
+    data = json.loads(open(os.path.dirname(os.path.realpath(__file__))+"/tickets.json", "r").read())
     boxes = data['unredeemedNftVouchers']
 
     print("What is the highest gas fee you want to pay?")
@@ -99,7 +100,6 @@ try:
     nonce = w3.eth.get_transaction_count(address)
     for index in range(0,number_to_mint):
         box = boxes[index]
-        print(box)
         gas_fees=w3.eth.gas_price / 1000000000 + 1 # adding one GWEI to current gas, since this number is base gas
         while (mode < 3 and gas_fees > max_fees):
             print(f"Waiting for gas to become lower than {max_fees}, currently: {gas_fees}")

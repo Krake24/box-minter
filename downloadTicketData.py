@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 
 base_url = "https://www.champions.io/api/emperors-challenge"
@@ -14,6 +15,6 @@ while result >= 200 and result < 300:
 
 boxes = requests.get(f"{base_url}/find/{code}").json()
 
-with open("tickets.json", "w") as file:
+with open(os.path.dirname(os.path.realpath(__file__))+"/tickets.json", "w") as file:
     file.write(json.dumps(boxes))
 
