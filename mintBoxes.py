@@ -1,3 +1,4 @@
+import pandas as pd
 import time
 import json
 import os
@@ -128,7 +129,7 @@ try:
 
         if mode == 1:
             print("Waiting for transaction to be completed")
-            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash)
+            tx_receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=24 * 60 * 60)
             print(f'Transaction successful')
 
         nonce=nonce + 1
